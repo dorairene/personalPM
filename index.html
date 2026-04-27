@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>我的個人儀表板</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Noto+Serif+TC:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d0f;
+    --bg2: #141417;
+    --bg3: #1c1c21;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.15);
+    --text: #e8e8ed;
+    --text2: #9b9ba8;
+    --text3: #5c5c6e;
+    --accent-news: #e8a44a;
+    --accent-market: #4ade80;
+    --accent-jp: #f472b6;
+    --accent-en: #60a5fa;
+    --font: 'Noto Sans TC', sans-serif;
+    --mono: 'IBM Plex Mono', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    min-height: 100vh;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  /* Header */
+  header {
+    padding: 2rem 2rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .header-top {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .site-title {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--text);
+  }
+
+  .date-display {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--text3);
+    letter-spacing: 0.05em;
+  }
+
+  /* Tab nav */
+  nav {
+    display: flex;
+    gap: 0;
+  }
+
+  .tab-btn {
+    background: none;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    font-family: var(--font);
+    font-size: 0.875rem;
+    color: var(--text3);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    letter-spacing: 0.02em;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    position: relative;
+    bottom: -1px;
+  }
+
+  .tab-btn:hover { color: var(--text2); }
+
+  .tab-btn.active-news   { color: var(--accent-news);   border-bottom-color: var(--accent-news);   }
+  .tab-btn.active-market { color: var(--accent-market); border-bottom-color: var(--accent-market); }
+  .tab-btn.active-jp     { color: var(--accent-jp);     border-bottom-color: var(--accent-jp);     }
+  .tab-btn.active-en     { color: var(--accent-en);     border-bottom-color: var(--accent-en);     }
+
+  .tab-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  /* Panels */
+  .panel { display: none; padding: 2rem; }
+  .panel.active { display: block; }
+
+  /* Section title */
+  .sec-title {
+    font-size: 0.7rem;
+    font-family: var(--mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* Loading spinner */
+  .loader {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--text3);
+    font-size: 0.875rem;
+    padding: 1.5rem 0;
+  }
+  .spin {
+    width: 16px; height: 16px;
+    border: 2px solid var(--border2);
+    border-top-color: var(--text2);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Error */
+  .err {
+    color: #f87171;
+    font-size: 0.8rem;
+    padding: 0.5rem 0;
+    font-family: var(--mono);
+  }
+
+  /* ---- NEWS PANEL ---- */
+  .news-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+
+  @media(max-width: 700px) { .news-grid { grid-template-columns: 1fr; } }
+
+  .news-section { }
+
+  .news-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    transition: border-color 0.2s;
+  }
+  .news-card:hover { border-color: var(--border2); }
+
+  .news-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+    gap: 0.5rem;
+  }
+
+  .news-headline {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text);
+    flex: 1;
+  }
+
+  .news-tag {
+    font-size: 0.65rem;
+    font-family: var(--mono);
+    padding: 2px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    background: rgba(232,164,74,0.15);
+    color: var(--accent-news);
+    border: 1px solid rgba(232,164,74,0.3);
+  }
+
+  .news-sum {
+    font-size: 0.82rem;
+    color: var(--text2);
+    line-height: 1.6;
+  }
+
+  .news-meta {
+    margin-top: 0.5rem;
+    font-size: 0.7rem;
+    font-family: var(--mono);
+    color: var(--text3);
+  }
+
+  .refresh-btn {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    padding: 0.4rem 1rem;
+    border-radius: 8px;
+    font-family: var(--font);
+    font-size: 0.8rem;
+    cursor: pointer;
+    margin-bottom: 1.5rem;
+    transition: all 0.2s;
+  }
+  .refresh-btn:hover { border-color: var(--border2); color: var(--text); }
+
+  /* ---- MARKET PANEL ---- */
+  .market-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .market-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    transition: border-color 0.2s;
+  }
+  .market-card:hover { border-color: var(--border2); }
+
+  .market-name {
+    font-size: 0.72rem;
+    font-family: var(--mono);
+    color: var(--text3);
+    letter-spacing: 0.06em;
+    margin-bottom: 0.4rem;
+  }
+
+  .market-price {
+    font-size: 1.5rem;
+    font-weight: 500;
+    font-family: var(--mono);
+    color: var(--text);
+    margin-bottom: 0.25rem;
+  }
+
+  .market-change {
+    font-size: 0.8rem;
+    font-family: var(--mono);
+  }
+  .up { color: #4ade80; }
+  .down { color: #f87171; }
+  .flat { color: var(--text3); }
+
+  .market-time {
+    font-size: 0.65rem;
+    color: var(--text3);
+    font-family: var(--mono);
+    margin-top: 0.25rem;
+  }
+
+  /* ---- JAPANESE PANEL ---- */
+  .jp-progress {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .jp-progress-bar-wrap {
+    background: var(--bg3);
+    height: 6px;
+    border-radius: 3px;
+    margin: 0.75rem 0 0.5rem;
+    overflow: hidden;
+  }
+
+  .jp-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-jp), #c084fc);
+    border-radius: 3px;
+    transition: width 0.6s ease;
+  }
+
+  .jp-progress-label {
+    font-size: 0.75rem;
+    font-family: var(--mono);
+    color: var(--text3);
+  }
+
+  .lesson-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .lesson-btn {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.75rem;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s;
+    font-family: var(--font);
+  }
+  .lesson-btn:hover { border-color: rgba(244,114,182,0.4); }
+  .lesson-btn.current { border-color: var(--accent-jp); background: rgba(244,114,182,0.08); }
+  .lesson-btn.done { opacity: 0.5; }
+
+  .lesson-num {
+    font-size: 0.65rem;
+    font-family: var(--mono);
+    color: var(--text3);
+    margin-bottom: 0.25rem;
+  }
+
+  .lesson-title {
+    font-size: 0.82rem;
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .lesson-tag-jp {
+    font-size: 0.75rem;
+    color: var(--accent-jp);
+    margin-top: 0.2rem;
+  }
+
+  .jp-study-area {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    min-height: 300px;
+  }
+
+  .jp-lesson-title {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--accent-jp);
+    margin-bottom: 0.25rem;
+  }
+  .jp-lesson-sub {
+    font-size: 0.8rem;
+    color: var(--text3);
+    font-family: var(--mono);
+    margin-bottom: 1.25rem;
+  }
+
+  .vocab-table { width: 100%; border-collapse: collapse; }
+  .vocab-table th {
+    font-size: 0.65rem;
+    font-family: var(--mono);
+    color: var(--text3);
+    text-align: left;
+    padding: 0.4rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+    letter-spacing: 0.08em;
+  }
+  .vocab-table td {
+    padding: 0.6rem 0.75rem;
+    font-size: 0.85rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .vocab-table tr:last-child td { border-bottom: none; }
+  .vocab-jp { color: var(--text); font-weight: 500; }
+  .vocab-kana { color: var(--accent-jp); font-size: 0.8rem; }
+  .vocab-zh { color: var(--text2); }
+
+  .jp-grammar {
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border);
+  }
+  .jp-grammar-title {
+    font-size: 0.7rem;
+    font-family: var(--mono);
+    letter-spacing: 0.1em;
+    color: var(--text3);
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+  .grammar-item {
+    margin-bottom: 0.75rem;
+    background: var(--bg3);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+  }
+  .grammar-pattern {
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    color: #c084fc;
+    margin-bottom: 0.2rem;
+  }
+  .grammar-ex {
+    font-size: 0.82rem;
+    color: var(--text2);
+  }
+  .grammar-zh {
+    font-size: 0.78rem;
+    color: var(--text3);
+  }
+
+  .jp-nav-btns {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+  }
+  .jp-nav-btn {
+    flex: 1;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: var(--font);
+    font-size: 0.82rem;
+    transition: all 0.2s;
+  }
+  .jp-nav-btn:hover { border-color: var(--accent-jp); color: var(--accent-jp); }
+  .jp-nav-btn:disabled { opacity: 0.3; cursor: default; }
+  .jp-nav-btn.primary {
+    background: rgba(244,114,182,0.12);
+    border-color: rgba(244,114,182,0.4);
+    color: var(--accent-jp);
+  }
+
+  /* ---- ENGLISH PANEL ---- */
+  .quiz-area {
+    max-width: 600px;
+  }
+
+  .word-card-big {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .word-main {
+    font-size: 2rem;
+    font-weight: 700;
+    font-family: var(--mono);
+    color: var(--text);
+    margin-bottom: 0.25rem;
+    letter-spacing: 0.03em;
+  }
+  .word-phonetic {
+    font-size: 0.85rem;
+    color: var(--text3);
+    font-family: var(--mono);
+    margin-bottom: 0.75rem;
+  }
+  .word-type-badge {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-family: var(--mono);
+    padding: 3px 10px;
+    border-radius: 4px;
+    background: rgba(96,165,250,0.12);
+    color: var(--accent-en);
+    border: 1px solid rgba(96,165,250,0.3);
+    margin-bottom: 1rem;
+    letter-spacing: 0.06em;
+  }
+  .word-definition {
+    font-size: 1rem;
+    color: var(--text2);
+    line-height: 1.7;
+  }
+  .word-example {
+    margin-top: 0.75rem;
+    font-size: 0.85rem;
+    color: var(--text3);
+    font-style: italic;
+    border-left: 2px solid rgba(96,165,250,0.3);
+    padding-left: 0.75rem;
+    text-align: left;
+  }
+  .word-zh {
+    margin-top: 0.75rem;
+    font-size: 0.85rem;
+    color: var(--accent-en);
+  }
+
+  .en-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+  @media(max-width:500px) { .en-options { grid-template-columns: 1fr; } }
+
+  .option-btn {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    text-align: left;
+    cursor: pointer;
+    font-family: var(--font);
+    font-size: 0.85rem;
+    color: var(--text2);
+    transition: all 0.2s;
+  }
+  .option-btn:hover { border-color: var(--border2); color: var(--text); }
+  .option-btn.correct { background: rgba(74,222,128,0.08); border-color: #4ade80; color: #4ade80; }
+  .option-btn.wrong   { background: rgba(248,113,113,0.08); border-color: #f87171; color: #f87171; }
+  .option-btn:disabled { cursor: default; }
+
+  .en-controls {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .en-score {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    color: var(--text3);
+    margin-left: auto;
+  }
+
+  .mode-select {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    padding: 0.4rem 0.75rem;
+    border-radius: 8px;
+    font-family: var(--font);
+    font-size: 0.8rem;
+    cursor: pointer;
+    outline: none;
+  }
+
+  .mode-select:focus { border-color: var(--accent-en); }
+
+  .word-streak {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--text3);
+    text-align: center;
+    margin-top: 1rem;
+  }
+  .streak-fire { color: #fb923c; }
+
+  /* Phrase mode */
+  .phrase-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+  }
+  .phrase-main {
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 0.5rem;
+  }
+  .phrase-context {
+    font-size: 0.85rem;
+    color: var(--text3);
+    font-style: italic;
+    margin-bottom: 0.75rem;
+    border-left: 2px solid rgba(96,165,250,0.3);
+    padding-left: 0.75rem;
+  }
+  .phrase-meaning {
+    font-size: 0.9rem;
+    color: var(--text2);
+  }
+  .phrase-zh { font-size: 0.85rem; color: var(--accent-en); margin-top: 0.25rem; }
+
+  /* Util */
+  .flex-between { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+  .small-muted { font-size: 0.75rem; color: var(--text3); font-family: var(--mono); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <span class="site-title">我的學習儀表板</span>
+    <span class="date-display" id="dateDisplay"></span>
+  </div>
+  <nav>
+    <button class="tab-btn active-news" onclick="showTab('news')" id="tab-news">
+      <span class="tab-dot" style="background:var(--accent-news)"></span>新聞
+    </button>
+    <button class="tab-btn" onclick="showTab('market')" id="tab-market">
+      <span class="tab-dot" style="background:var(--accent-market)"></span>$$
+    </button>
+    <button class="tab-btn" onclick="showTab('jp')" id="tab-jp">
+      <span class="tab-dot" style="background:var(--accent-jp)"></span>日文複習
+    </button>
+    <button class="tab-btn" onclick="showTab('en')" id="tab-en">
+      <span class="tab-dot" style="background:var(--accent-en)"></span>英文複習
+    </button>
+  </nav>
+</header>
+
+<!-- =================== NEWS PANEL =================== -->
+<div class="panel active" id="panel-news">
+  <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap">
+    <button class="refresh-btn" style="margin:0" onclick="loadNews()">↻ 即時搜尋新聞</button>
+    <span class="small-muted" id="news-update-time"></span>
+    <span class="small-muted" style="color:var(--accent-news)">● Claude web_search 即時</span>
+  </div>
+  <div class="news-grid">
+    <div>
+      <div class="sec-title">🌏 國際經濟</div>
+      <div id="news-global"><div class="loader"><div class="spin"></div>載入中...</div></div>
+    </div>
+    <div>
+      <div class="sec-title">🇹🇼 台灣經濟</div>
+      <div id="news-taiwan"><div class="loader"><div class="spin"></div>載入中...</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- =================== MARKET PANEL =================== -->
+<div class="panel" id="panel-market">
+  <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap">
+    <div class="sec-title" style="margin:0">市場即時行情</div>
+    <button class="refresh-btn" style="margin:0" onclick="loadMarket()">↻ 即時搜尋報價</button>
+    <span class="small-muted" id="market-update-time"></span>
+    <span class="small-muted" style="color:var(--accent-market)">● Claude web_search 即時</span>
+  </div>
+  <div id="market-grid" class="market-grid">
+    <div class="loader"><div class="spin"></div>載入中...</div>
+  </div>
+  <p style="font-size:0.75rem;color:var(--text3);margin-top:1rem">資料由 Claude web_search 即時搜尋，僅供參考，不作為投資依據。</p>
+</div>
+
+<!-- =================== JAPANESE PANEL =================== -->
+<div class="panel" id="panel-jp">
+  <div class="jp-progress">
+    <div class="flex-between" style="margin:0">
+      <span style="font-size:0.875rem;font-weight:500">大家的日本語 第1課 ～ 第30課</span>
+      <span class="small-muted" id="jp-progress-text">0 / 30</span>
+    </div>
+    <div class="jp-progress-bar-wrap">
+      <div class="jp-progress-bar" id="jp-bar" style="width:0%"></div>
+    </div>
+    <div class="jp-progress-label">選擇課程開始複習</div>
+  </div>
+
+  <div class="lesson-grid" id="lesson-grid"></div>
+
+  <div class="jp-study-area" id="jp-study-area">
+    <div style="color:var(--text3);font-size:0.875rem;text-align:center;padding:3rem 0">
+      ← 請選擇左方課程開始複習
+    </div>
+  </div>
+</div>
+
+<!-- =================== ENGLISH PANEL =================== -->
+<div class="panel" id="panel-en">
+  <div class="flex-between">
+    <div class="sec-title" style="margin:0">多益 700 英文學習</div>
+    <select class="mode-select" id="en-mode" onchange="initEnglish()">
+      <option value="vocab">單字測驗</option>
+      <option value="phrase">片語學習</option>
+    </select>
+  </div>
+  <br>
+  <div class="quiz-area" id="quiz-area">
+    <div class="loader"><div class="spin"></div>載入中...</div>
+  </div>
+</div>
+
+<script>
+// ============ DATE ============
+const d = new Date();
+document.getElementById('dateDisplay').textContent =
+  d.toLocaleDateString('zh-TW', {year:'numeric',month:'long',day:'numeric',weekday:'short'});
+
+// ============ TABS ============
+const tabColors = {news:'news',market:'market',jp:'jp',en:'en'};
+let initialized = {news:false, market:false, jp:false, en:false};
+
+function showTab(name) {
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>{
+    b.className='tab-btn';
+  });
+  document.getElementById('panel-'+name).classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active-'+name);
+
+  if(!initialized[name]) {
+    initialized[name]=true;
+    if(name==='news') loadNews();
+    if(name==='market') loadMarket();
+    if(name==='jp') initJP();
+    if(name==='en') initEnglish();
+  }
+}
+
+// ============ CLAUDE API (with web_search) ============
+async function callClaudeSearch(prompt, systemPrompt='') {
+  const body = {
+    model: 'claude-sonnet-4-20250514',
+    max_tokens: 2000,
+    tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+    messages: [{role:'user', content: prompt}]
+  };
+  if(systemPrompt) body.system = systemPrompt;
+  const r = await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(body)
+  });
+  const data = await r.json();
+  // Extract text from all content blocks
+  if(!data.content) throw new Error(data.error?.message || 'API error');
+  return data.content.filter(b=>b.type==='text').map(b=>b.text).join('');
+}
+
+async function callClaude(prompt, systemPrompt='') {
+  const body = {
+    model: 'claude-sonnet-4-20250514',
+    max_tokens: 1000,
+    messages: [{role:'user', content: prompt}]
+  };
+  if(systemPrompt) body.system = systemPrompt;
+  const r = await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(body)
+  });
+  const data = await r.json();
+  return data.content?.[0]?.text || '';
+}
+
+// ============ NEWS ============
+async function loadNews() {
+  document.getElementById('news-global').innerHTML = '<div class="loader"><div class="spin"></div>搜尋即時新聞中...</div>';
+  document.getElementById('news-taiwan').innerHTML = '<div class="loader"><div class="spin"></div>搜尋即時新聞中...</div>';
+
+  const today = new Date().toLocaleDateString('zh-TW');
+
+  const globalPrompt = `今天是${today}。請用web_search搜尋「international economy news today」和「global financial news ${new Date().getFullYear()}」，找出3則最新的國際經濟重要新聞。
+搜尋完成後，回傳純JSON陣列（不要其他文字、不要markdown）：
+[{"headline":"新聞標題(中文翻譯)","summary":"2-3句重點摘要(中文)","tag":"主題類別","date":"發布日期","source":"來源媒體"}]`;
+
+  const taiwanPrompt = `今天是${today}。請用web_search搜尋「台灣經濟新聞 ${today}」和「Taiwan economy news today」，找出3則最新的台灣經濟相關新聞。
+搜尋完成後，回傳純JSON陣列（不要其他文字、不要markdown）：
+[{"headline":"新聞標題","summary":"2-3句重點摘要(中文)","tag":"主題類別","date":"發布日期","source":"來源媒體"}]`;
+
+  try {
+    const [g, t] = await Promise.all([
+      callClaudeSearch(globalPrompt),
+      callClaudeSearch(taiwanPrompt)
+    ]);
+    renderNews('news-global', g);
+    renderNews('news-taiwan', t);
+    document.getElementById('news-update-time').textContent = '更新時間：' + new Date().toLocaleTimeString('zh-TW');
+  } catch(e) {
+    document.getElementById('news-global').innerHTML = '<div class="err">載入失敗: '+e.message+'</div>';
+    document.getElementById('news-taiwan').innerHTML = '<div class="err">載入失敗</div>';
+  }
+}
+
+function renderNews(id, raw) {
+  try {
+    const clean = raw.replace(/```json|```/g,'').trim();
+    // Find JSON array in the text
+    const match = clean.match(/\[[\s\S]*\]/);
+    const items = JSON.parse(match ? match[0] : clean);
+    document.getElementById(id).innerHTML = items.map(n=>`
+      <div class="news-card">
+        <div class="news-card-head">
+          <div class="news-headline">${n.headline}</div>
+          <span class="news-tag">${n.tag}</span>
+        </div>
+        <div class="news-sum">${n.summary}</div>
+        <div class="news-meta">${n.date}${n.source?' · '+n.source:''}</div>
+      </div>`).join('');
+  } catch(e) {
+    document.getElementById(id).innerHTML = '<div class="err">解析失敗，請重試</div>';
+    console.error('News parse error:', e, raw.slice(0,300));
+  }
+}
+
+// ============ MARKET ============
+async function loadMarket() {
+  document.getElementById('market-grid').innerHTML = '<div class="loader"><div class="spin"></div>搜尋即時報價中...</div>';
+
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('zh-TW');
+
+  const prompt = `今天是${dateStr}。請用web_search分別搜尋以下資產的最新即時價格：
+1. 搜尋「S&P 500 price today」
+2. 搜尋「NASDAQ index today」
+3. 搜尋「台股加權指數 今日」
+4. 搜尋「TSM stock price today」（台積電ADR）
+5. 搜尋「2330 股價 今日」（台積電）
+6. 搜尋「gold price per ounce today」
+7. 搜尋「copper price today」
+8. 搜尋「iron ore price today」
+
+搜尋完所有資料後，回傳純JSON陣列（不要其他文字、不要markdown）：
+[{"name":"名稱","ticker":"代號","price":"價格含單位","change":"漲跌幅如+1.2%","trend":"up/down/flat","unit":"貨幣單位","time":"資料時間"}]
+共8筆，順序同上。`;
+
+  try {
+    const raw = await callClaudeSearch(prompt);
+    const match = raw.replace(/```json|```/g,'').match(/\[[\s\S]*\]/);
+    const items = JSON.parse(match ? match[0] : raw.replace(/```json|```/g,'').trim());
+    document.getElementById('market-grid').innerHTML = items.map(m=>`
+      <div class="market-card">
+        <div class="market-name">${m.ticker || ''}</div>
+        <div class="market-price">${m.price}</div>
+        <div class="market-change ${m.trend}">${m.trend==='up'?'▲':m.trend==='down'?'▼':'–'} ${m.change}</div>
+        <div class="market-name" style="margin-top:0.3rem;color:var(--text2)">${m.name}</div>
+        <div class="market-time">${m.time||''}</div>
+      </div>`).join('');
+    document.getElementById('market-update-time').textContent = '更新：' + new Date().toLocaleTimeString('zh-TW');
+  } catch(e) {
+    document.getElementById('market-grid').innerHTML = '<div class="err">載入失敗: '+e.message+'<br><button class="refresh-btn" style="margin-top:0.5rem" onclick="loadMarket()">重試</button></div>';
+  }
+}
+
+// ============ JAPANESE ============
+const JP_LESSONS = [
+  {n:1, title:'はじめまして', jp:'初めまして', vocab:[
+    {jp:'わたし',kana:'わたし',zh:'我'},
+    {jp:'あなた',kana:'あなた',zh:'你'},
+    {jp:'かいしゃいん',kana:'会社員',zh:'上班族'},
+    {jp:'がくせい',kana:'学生',zh:'學生'},
+    {jp:'にほんご',kana:'日本語',zh:'日語'},
+    {jp:'せんせい',kana:'先生',zh:'老師'},
+  ], grammar:[
+    {pattern:'〜は〜です', ex:'わたしはマリアです。', zh:'我是瑪莉亞。'},
+    {pattern:'〜は〜ですか', ex:'あなたはがくせいですか。', zh:'你是學生嗎？'},
+  ]},
+  {n:2, title:'これはなんですか', jp:'これは何ですか', vocab:[
+    {jp:'これ',kana:'これ',zh:'這個'},
+    {jp:'それ',kana:'それ',zh:'那個'},
+    {jp:'あれ',kana:'あれ',zh:'那個(遠)'},
+    {jp:'ほん',kana:'本',zh:'書'},
+    {jp:'えんぴつ',kana:'鉛筆',zh:'鉛筆'},
+    {jp:'かさ',kana:'傘',zh:'雨傘'},
+  ], grammar:[
+    {pattern:'これは〜です', ex:'これはほんです。', zh:'這是書。'},
+    {pattern:'〜の〜', ex:'これはわたしのほんです。', zh:'這是我的書。'},
+  ]},
+  {n:3, title:'ここはデパートです', jp:'ここはデパートです', vocab:[
+    {jp:'ここ',kana:'ここ',zh:'這裡'},
+    {jp:'そこ',kana:'そこ',zh:'那裡'},
+    {jp:'あそこ',kana:'あそこ',zh:'那裡(遠)'},
+    {jp:'デパート',kana:'デパート',zh:'百貨公司'},
+    {jp:'トイレ',kana:'トイレ',zh:'廁所'},
+    {jp:'うえ',kana:'上',zh:'上面'},
+  ], grammar:[
+    {pattern:'ここは〜です', ex:'ここはデパートです。', zh:'這裡是百貨公司。'},
+    {pattern:'〜は どこですか', ex:'トイレはどこですか。', zh:'廁所在哪裡？'},
+  ]},
+  {n:4, title:'いま なんじですか', jp:'今何時ですか', vocab:[
+    {jp:'いま',kana:'今',zh:'現在'},
+    {jp:'なんじ',kana:'何時',zh:'幾點'},
+    {jp:'ごぜん',kana:'午前',zh:'上午'},
+    {jp:'ごご',kana:'午後',zh:'下午'},
+    {jp:'はん',kana:'半',zh:'半'},
+    {jp:'やすみ',kana:'休み',zh:'假日/休息'},
+  ], grammar:[
+    {pattern:'〜から〜まで', ex:'9じから5じまでです。', zh:'從9點到5點。'},
+    {pattern:'〜は なんじですか', ex:'いまはなんじですか。', zh:'現在幾點了？'},
+  ]},
+  {n:5, title:'いくらですか', jp:'いくらですか', vocab:[
+    {jp:'いくら',kana:'いくら',zh:'多少錢'},
+    {jp:'ひとつ',kana:'一つ',zh:'一個'},
+    {jp:'ふたつ',kana:'二つ',zh:'兩個'},
+    {jp:'みっつ',kana:'三つ',zh:'三個'},
+    {jp:'ください',kana:'ください',zh:'請給我'},
+    {jp:'すみません',kana:'すみません',zh:'不好意思'},
+  ], grammar:[
+    {pattern:'〜を ください', ex:'これをひとつください。', zh:'請給我一個這個。'},
+    {pattern:'〜と〜', ex:'これとそれをください。', zh:'請給我這個和那個。'},
+  ]},
+];
+
+// Generate stubs for lessons 6-30
+for(let i=6;i<=30;i++) {
+  const topics = ['電話番号','誕生日','毎日の生活','天気','趣味','家族','買い物','道案内','レストラン','旅行','病院','仕事','交通','季節','計画','過去の話','比較','依頼','許可','禁止','理由','条件','引用','様子','変化','経験','希望','難易度','自動詞他動詞','まとめ'];
+  JP_LESSONS.push({
+    n:i, title:topics[i-6], jp:topics[i-6],
+    vocab:[{jp:'（AI生成）',kana:'',zh:'點擊課程→AI生成單字'}],
+    grammar:[{pattern:'（AI生成）',ex:'',zh:'點擊課程→AI生成文法'}],
+    aiGenerate: true
+  });
+}
+
+let currentLesson = 0;
+let completedLessons = new Set(JSON.parse(localStorage.getItem('jp_done')||'[]'));
+
+function initJP() {
+  const grid = document.getElementById('lesson-grid');
+  grid.innerHTML = JP_LESSONS.map(l=>`
+    <button class="lesson-btn ${completedLessons.has(l.n)?'done':''}" onclick="loadLesson(${l.n-1})" id="lb-${l.n}">
+      <div class="lesson-num">第 ${l.n} 課</div>
+      <div class="lesson-title">${l.title}</div>
+      <div class="lesson-tag-jp">${l.jp}</div>
+    </button>`).join('');
+  updateProgress();
+}
+
+function updateProgress() {
+  const pct = Math.round(completedLessons.size/30*100);
+  document.getElementById('jp-bar').style.width = pct+'%';
+  document.getElementById('jp-progress-text').textContent = completedLessons.size+' / 30';
+}
+
+async function loadLesson(idx) {
+  currentLesson = idx;
+  const l = JP_LESSONS[idx];
+
+  document.querySelectorAll('.lesson-btn').forEach(b=>b.classList.remove('current'));
+  document.getElementById('lb-'+l.n)?.classList.add('current');
+
+  const area = document.getElementById('jp-study-area');
+
+  if(l.aiGenerate) {
+    area.innerHTML = `<div class="jp-lesson-title">第 ${l.n} 課：${l.title}</div>
+    <div class="jp-lesson-sub">大家的日本語 Lesson ${l.n}</div>
+    <div class="loader"><div class="spin"></div>AI 生成課程內容中...</div>`;
+
+    const prompt = `你是日語老師。請為「大家的日本語」第${l.n}課（主題：${l.title}）生成教學內容。
+回傳純JSON：{"vocab":[{"jp":"平假名","kana":"漢字","zh":"中文"}]（6個）,"grammar":[{"pattern":"文法","ex":"例句","zh":"中文"}]（2個）}
+只回JSON。`;
+
+    const raw = await callClaude(prompt);
+    try {
+      const clean = raw.replace(/```json|```/g,'').trim();
+      const data = JSON.parse(clean);
+      l.vocab = data.vocab;
+      l.grammar = data.grammar;
+      l.aiGenerate = false;
+    } catch(e) {}
+  }
+
+  renderLesson(l);
+}
+
+function renderLesson(l) {
+  const area = document.getElementById('jp-study-area');
+  const isDone = completedLessons.has(l.n);
+
+  area.innerHTML = `
+    <div class="jp-lesson-title">第 ${l.n} 課：${l.title}</div>
+    <div class="jp-lesson-sub">大家的日本語 Lesson ${l.n}</div>
+
+    <div class="sec-title">單字</div>
+    <table class="vocab-table">
+      <thead><tr><th>平假名</th><th>漢字</th><th>中文</th></tr></thead>
+      <tbody>${l.vocab.map(v=>`
+        <tr>
+          <td class="vocab-jp">${v.jp}</td>
+          <td class="vocab-kana">${v.kana}</td>
+          <td class="vocab-zh">${v.zh}</td>
+        </tr>`).join('')}</tbody>
+    </table>
+
+    <div class="jp-grammar">
+      <div class="jp-grammar-title">文法重點</div>
+      ${l.grammar.map(g=>`
+        <div class="grammar-item">
+          <div class="grammar-pattern">${g.pattern}</div>
+          ${g.ex?`<div class="grammar-ex">${g.ex}</div>`:''}
+          <div class="grammar-zh">${g.zh}</div>
+        </div>`).join('')}
+    </div>
+
+    <div class="jp-nav-btns">
+      <button class="jp-nav-btn" onclick="loadLesson(${currentLesson-1})" ${currentLesson===0?'disabled':''}>← 上一課</button>
+      <button class="jp-nav-btn primary" onclick="markDone(${l.n})">${isDone?'✓ 已完成':'標記完成'}</button>
+      <button class="jp-nav-btn" onclick="loadLesson(${currentLesson+1})" ${currentLesson===29?'disabled':''}>下一課 →</button>
+    </div>`;
+}
+
+function markDone(n) {
+  completedLessons.add(n);
+  try { localStorage.setItem('jp_done', JSON.stringify([...completedLessons])); } catch(e){}
+  document.getElementById('lb-'+n)?.classList.add('done');
+  updateProgress();
+  renderLesson(JP_LESSONS[currentLesson]);
+}
+
+// ============ ENGLISH ============
+const VOCAB_BANK = [
+  {word:'substantial',phonetic:'/səbˈstænʃ.əl/',type:'adj',def:'Large in size, value, or importance',example:'The company made a substantial profit this year.',zh:'大量的；實質的',options:['大量的','微小的','臨時的','無聊的']},
+  {word:'elaborate',phonetic:'/ɪˈlæb.ər.ət/',type:'adj/v',def:'Containing a lot of careful detail; to explain with more detail',example:'She gave an elaborate explanation of the process.',zh:'詳細的；精心製作',options:['詳細的','簡單的','錯誤的','無效的']},
+  {word:'inevitable',phonetic:'/ɪnˈev.ɪ.tə.bəl/',type:'adj',def:'Certain to happen and impossible to avoid',example:'Change is inevitable in any growing organization.',zh:'不可避免的',options:['不可避免的','可選擇的','臨時的','令人驚訝的']},
+  {word:'competent',phonetic:'/ˈkɒm.pɪ.tənt/',type:'adj',def:'Having enough skill or knowledge to do something well',example:'We need a competent manager for this project.',zh:'有能力的；勝任的',options:['有能力的','無能的','熱情的','嚴格的']},
+  {word:'feasible',phonetic:'/ˈfiː.zɪ.bəl/',type:'adj',def:'Possible and practical to do easily or conveniently',example:'Is it feasible to complete the project by Friday?',zh:'可行的；可能的',options:['可行的','不可能的','危險的','複雜的']},
+  {word:'fluctuate',phonetic:'/ˈflʌk.tʃu.eɪt/',type:'v',def:'To change frequently in level or amount',example:'Oil prices tend to fluctuate with global events.',zh:'波動；起伏',options:['波動','穩定','增加','減少']},
+  {word:'accumulate',phonetic:'/əˈkjuː.mjə.leɪt/',type:'v',def:'To gradually collect or increase',example:'Dust accumulates if you don\'t clean regularly.',zh:'積累；累積',options:['積累','消耗','轉移','分散']},
+  {word:'relevant',phonetic:'/ˈrel.ɪ.vənt/',type:'adj',def:'Related to a subject in an appropriate way',example:'Please submit relevant documents for review.',zh:'相關的；切題的',options:['相關的','無關的','重要的','複雜的']},
+  {word:'undermine',phonetic:'/ˌʌn.dəˈmaɪn/',type:'v',def:'To weaken or damage something gradually',example:'Frequent conflicts can undermine team morale.',zh:'破壞；削弱',options:['破壞','加強','支持','分析']},
+  {word:'implement',phonetic:'/ˈɪm.plɪ.ment/',type:'v',def:'To put a plan or system into action',example:'The company will implement new policies next month.',zh:'實施；執行',options:['實施','計畫','取消','評估']},
+];
+
+const PHRASE_BANK = [
+  {phrase:'in terms of',context:'In terms of performance, this model is superior.',meaning:'Regarding; with respect to',zh:'就…而言；在…方面'},
+  {phrase:'carry out',context:'We need to carry out further research.',meaning:'To do or complete a task',zh:'執行；實施'},
+  {phrase:'break down',context:'The negotiations broke down after two days.',meaning:'To fail or stop working',zh:'故障；崩潰；分解'},
+  {phrase:'take into account',context:'Please take into account the budget limits.',meaning:'To consider something',zh:'考慮進去；把…納入考量'},
+  {phrase:'bring about',context:'New technology can bring about major changes.',meaning:'To cause something to happen',zh:'帶來；導致（改變）'},
+  {phrase:'as a result of',context:'Sales increased as a result of the campaign.',meaning:'Because of; due to',zh:'由於；作為…的結果'},
+  {phrase:'be in charge of',context:'She is in charge of the marketing department.',meaning:'To be responsible for',zh:'負責；主管'},
+  {phrase:'draw attention to',context:'The report draws attention to key risks.',meaning:'To make people notice something',zh:'引起注意；指出'},
+];
+
+let currentWord = 0;
+let score = {correct:0, total:0};
+let streak = 0;
+let answered = false;
+let currentPhraseIdx = 0;
+
+function initEnglish() {
+  const mode = document.getElementById('en-mode').value;
+  score = {correct:0,total:0};
+  streak = 0;
+  currentWord = 0;
+  currentPhraseIdx = 0;
+  answered = false;
+  if(mode==='vocab') renderVocabQuiz();
+  else renderPhrase();
+}
+
+function renderVocabQuiz() {
+  const item = VOCAB_BANK[currentWord % VOCAB_BANK.length];
+  answered = false;
+
+  // Shuffle options
+  const opts = [...item.options].sort(()=>Math.random()-0.5);
+
+  document.getElementById('quiz-area').innerHTML = `
+    <div class="word-card-big">
+      <div class="word-main">${item.word}</div>
+      <div class="word-phonetic">${item.phonetic}</div>
+      <span class="word-type-badge">${item.type}</span>
+      <div class="word-definition">${item.def}</div>
+      <div class="word-example">${item.example}</div>
+    </div>
+
+    <div style="font-size:0.8rem;color:var(--text3);margin-bottom:0.75rem;font-family:var(--mono)">選出正確的中文意思：</div>
+    <div class="en-options" id="options">
+      ${opts.map(o=>`<button class="option-btn" onclick="checkAnswer(this,'${o}','${item.zh}')">${o}</button>`).join('')}
+    </div>
+
+    <div class="en-controls">
+      <button class="option-btn" style="padding:0.5rem 1rem" onclick="nextWord()">跳過 →</button>
+      <span class="en-score">✓ ${score.correct} / ${score.total}</span>
+    </div>
+    <div class="word-streak">${streak>2?'<span class="streak-fire">🔥</span> 連答 '+streak+' 題！':''}</div>`;
+}
+
+function checkAnswer(btn, chosen, correct) {
+  if(answered) return;
+  answered = true;
+  score.total++;
+  const btns = document.querySelectorAll('.option-btn');
+  btns.forEach(b=>{
+    b.disabled = true;
+    if(b.textContent.trim() === correct) b.classList.add('correct');
+  });
+  if(chosen===correct) { btn.classList.add('correct'); score.correct++; streak++; }
+  else { btn.classList.add('wrong'); streak=0; }
+
+  // Show answer
+  const area = document.getElementById('quiz-area');
+  const item = VOCAB_BANK[currentWord % VOCAB_BANK.length];
+  const zh = document.createElement('div');
+  zh.className = 'word-zh';
+  zh.textContent = '中文：' + item.zh;
+  document.querySelector('.word-card-big').appendChild(zh);
+  document.querySelector('.en-score').textContent = `✓ ${score.correct} / ${score.total}`;
+  document.querySelector('.word-streak').innerHTML = streak>2?`<span class="streak-fire">🔥</span> 連答 ${streak} 題！`:'';
+
+  setTimeout(()=>{ currentWord++; renderVocabQuiz(); }, 1200);
+}
+
+function nextWord() {
+  currentWord++;
+  renderVocabQuiz();
+}
+
+function renderPhrase() {
+  const item = PHRASE_BANK[currentPhraseIdx % PHRASE_BANK.length];
+  document.getElementById('quiz-area').innerHTML = `
+    <div class="phrase-card">
+      <div class="phrase-main">${item.phrase}</div>
+      <div class="phrase-context">${item.context}</div>
+      <div class="phrase-meaning">${item.meaning}</div>
+      <div class="phrase-zh">${item.zh}</div>
+    </div>
+    <div class="en-controls">
+      <button class="option-btn" style="padding:0.5rem 1rem" onclick="prevPhrase()">← 上一個</button>
+      <button class="option-btn" style="padding:0.5rem 1rem" onclick="nextPhrase()">下一個 →</button>
+      <span class="en-score">${currentPhraseIdx+1} / ${PHRASE_BANK.length}</span>
+    </div>`;
+}
+
+function prevPhrase() { currentPhraseIdx = Math.max(0, currentPhraseIdx-1); renderPhrase(); }
+function nextPhrase() { currentPhraseIdx++; renderPhrase(); }
+
+// ============ INIT ============
+initialized.news = true;
+loadNews();
+</script>
+</body>
+</html>
